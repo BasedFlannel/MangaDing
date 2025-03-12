@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -10,23 +10,24 @@ import (
 )
 
 func main() {
+	restTest := restGet("https://api.restful-api.dev/objects")
+	log.Println(restTest)
+	//runBot()
+}
 
-	authToken := readAuthFile("bot.key")
+func runBot() {
 
+	//import a discord auth token from bot.key and instantiate a new bot with it
+	authToken := loadFile("bot.key.fart")
 	sess, err := discordgo.New("Bot " + authToken)
 	errorCheck(err)
 
-	fmt.Println("Session initialized")
-
+	//add message handler, intents, and open the session
 	sess.AddHandler(helloMesages)
-
-	//18432 is Send Messages, read message history, and Embed Links
 	sess.Identify.Intents = discordgo.IntentsGuildMessages
-
 	err = sess.Open()
 	errorCheck(err)
-
-	fmt.Println("The bot is listening")
+	log.Println("The bot is listening")
 
 	//code to hold the thread until interrupt is sent
 	sc := make(chan os.Signal, 1)
@@ -34,6 +35,7 @@ func main() {
 	<-sc
 }
 
+// Primary message handler
 func helloMesages(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if m.Author.ID == s.State.User.ID {
 		return
@@ -44,16 +46,15 @@ func helloMesages(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 }
 
-func readAuthFile(filename string) string {
+func loadFile(filename string) string {
 	data, err := os.ReadFile(filename)
 	errorCheck(err)
 	return (string(data))
 }
 
-// function for checking errors, logs and panics if one comes up.
+// basic error check function to throw panic when nothing more is required
 func errorCheck(e error) {
 	if e != nil {
-		fmt.Println("Error: ", e)
-		panic(e)
+		log.Panic(e)
 	}
 }
